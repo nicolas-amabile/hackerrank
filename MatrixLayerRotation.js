@@ -49,15 +49,65 @@ function buildLimitsMatrix (width, height) {
     MAX
   }
 }
+const D = {
+  LEFT: 'left',
+  DOWN: 'down',
+  RIGHT: 'right',
+  UP: 'up'
+}
 
 function getNewIndex ({ x, y, r, MIN, MAX }) {
+  const min = MIN[x][y]
+  const max = MAX[x][y]
   let newX = x
   let newY = y
   let offset = r
-  while(offset > 0) {
-    offset--
+
+  let nextDirection = D.LEFT
+  if (newX === min) {
+    nextDirection = D.DOWN
+  } else if (newX === max) {
+    nextDirection = D.RIGHT
+  } else if (newY === max) {
+    nextDirection = D.UP
   }
-  console.log(`For (${x},${y}) => (${newX},${newY})`)
+  while(offset > 0) {
+    let canGoLeft = newX - 1 >= min
+    let canGoDown = newY + 1 <= max
+    let canGoRight = newX + 1 <= max
+    let canGoUp = newY - 1 >= min
+    if (canGoLeft && (nextDirection === D.LEFT || !canGoUp)) {
+      while(canGoLeft && offset>0) {
+        newX--
+        canGoLeft = newX - 1 >= min
+        offset--
+      }
+      if (offset>0) nextDirection = D.DOWN
+    } else if (canGoDown && (nextDirection === D.DOWN || !canGoLeft)) {
+      while(canGoDown && offset>0) {
+        newY++
+        canGoDown = newY + 1 <= max
+        offset--
+      }
+      if (offset>0) nextDirection = D.RIGHT
+
+    } else if (canGoRight && (nextDirection === D.RIGHT || !canGoDown)) {
+      while(canGoRight && offset>0) {
+        newX++
+        canGoRight = newX + 1 <= max
+        offset--
+      }
+      if (offset>0) nextDirection = D.UP
+
+    } else if (canGoUp && (nextDirection === D.UP || !canGoRight)) { 
+      while(canGoUp && offset>0) {
+        newY--
+        canGoUp = newY - 1 >= min
+        offset--
+      }
+      if (offset>0) nextDirection = D.LEFT
+    }
+  }
   return [newX, newY]
 }
 
@@ -114,17 +164,54 @@ const expected = [
   [5,9,13,14]
 ]
 
-console.log(matrixRotation(example, 2))
-printMatrix(expected)
+matrixRotation(example, 2)
+console.log('=================')
+printMatrix(example)
 
-// (0,0) (0,1) (0,2) (0,3)
-// (1,0) (1,1) (1,2) (1,3)
-// (2,0) (2,1) (2,2) (2,3)
-// (3,0) (3,1) (3,2) (3,3)
+// (0,0) (1,0) (2,0) (3,0)
+// (0,1) (1,1) (2,1) (3,1)
+// (0,2) (1,2) (2,2) (3,2)
+// (0,3) (1,3) (2,3) (3,3)
 
-// R:2 => 
+// R: 2 => 
 
-// (2,0) (1,0) (0,0) (0,1)
-// (3,0) (2,2) (2,1) (0,2)
-// (3,1) (1,2) (1,1) (0,3)
-// (3,2) (3,3) (2,3) (1,3)
+// (0,2) (0,1) (0,0) (1,0)
+// (0,3) (2,2) (1,2) (2,0)
+// (1,3) (2,1) (1,1) (3,0)
+// (2,3) (3,3) (3,2) (3,1)
+
+// EXPECTED
+// For (0,0) => (0,2)
+// For (0,1) => (0,3)
+// For (0,2) => (1,3)
+// For (0,3) => (2,3)
+// For (1,0) => (0,1) 
+// For (1,1) => (2,2)
+// For (1,2) => (2,1)
+// For (1,3) => (3,3)
+// For (2,0) => (0,0)
+// For (2,1) => (1,2)
+// For (2,2) => (1,1)
+// For (2,3) => (3,2)
+// For (3,0) => (1,0)
+// For (3,1) => (2,0)
+// For (3,2) => (3,0)
+// For (3,3) => (3,1)
+
+// CURRENT
+// For (0,0) => (0,2)
+// For (0,1) => (0,3)
+// For (0,2) => (1,3)
+// For (0,3) => (2,3)
+// For (1,0) => (0,1)
+// For (1,1) => (2,2)
+// For (1,2) => (2,1)
+// For (1,3) => (3,3)
+// For (2,0) => (0,0)
+// For (2,1) => (1,2)
+// For (2,2) => (1,1)
+// For (2,3) => (3,2)
+// For (3,0) => (1,0)
+// For (3,1) => (2,0)
+// For (3,2) => (3,0)
+// For (3,3) => (3,1)
