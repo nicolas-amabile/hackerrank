@@ -56,12 +56,30 @@ const D = {
   UP: 'up'
 }
 
+const ERRORS = [
+
+]
+
+function isError (x, y) {
+  let result = false
+  ERRORS.forEach(([eX, eY]) => {
+    if (eX === x && eY === y) {
+      result = true
+    }
+  })
+  return result
+}
+
 function getNewIndex ({ x, y, r, MIN, MAX }) {
   const min = MIN[x][y]
   const max = MAX[x][y]
   let newX = x
   let newY = y
   let offset = r
+
+  if (isError(x, y)) {
+    debugger
+  }
 
   let nextDirection = D.LEFT
   if (newX === min) {
@@ -72,6 +90,7 @@ function getNewIndex ({ x, y, r, MIN, MAX }) {
     nextDirection = D.UP
   }
   while(offset > 0) {
+    // TODO: Esto de aca esta mal. Ver Spreedsheet
     let canGoLeft = newX - 1 >= min
     let canGoDown = newY + 1 <= max
     let canGoRight = newX + 1 <= max
@@ -108,6 +127,7 @@ function getNewIndex ({ x, y, r, MIN, MAX }) {
       if (offset>0) nextDirection = D.LEFT
     }
   }
+  // console.log(`(${x},${y}) => (${newX},${newY})`)
   return [newX, newY]
 }
 
@@ -151,6 +171,7 @@ function matrixRotation(matrix, r) {
 //     matrixRotation(matrix, r);
 // }
 
+const R = 1
 const example = [
   [1, 2, 3, 4],
   [5, 6, 7, 8],
@@ -158,60 +179,64 @@ const example = [
   [13, 14, 15, 16]
 ]
 const expected = [
-  [3,4,8,12],
-  [2,11,10,16],
-  [1,7,6,15],
-  [5,9,13,14]
+  [2, 3, 4, 8],
+  [1, 7, 11, 12],
+  [5, 6, 10, 16],
+  [9, 13, 14, 15]
+]
+const got = [
+  [5, 1, 2, 3],
+  [9, 10, 6, 4],
+  [13, 11, 7, 8],
+  [14, 15, 16, 12],
 ]
 
-matrixRotation(example, 2)
-console.log('=================')
+console.log('Input')
 printMatrix(example)
+
+console.log('\nResult')
+matrixRotation(example, R)
+
+console.log('\nExpected')
+printMatrix(expected)
 
 // (0,0) (1,0) (2,0) (3,0)
 // (0,1) (1,1) (2,1) (3,1)
 // (0,2) (1,2) (2,2) (3,2)
-// (0,3) (1,3) (2,3) (3,3)
-
-// R: 2 => 
-
-// (0,2) (0,1) (0,0) (1,0)
-// (0,3) (2,2) (1,2) (2,0)
-// (1,3) (2,1) (1,1) (3,0)
-// (2,3) (3,3) (3,2) (3,1)
+// (0,3) (1,3) (2,3) (3,3)  
 
 // EXPECTED
-// For (0,0) => (0,2)
-// For (0,1) => (0,3)
-// For (0,2) => (1,3)
-// For (0,3) => (2,3)
-// For (1,0) => (0,1) 
-// For (1,1) => (2,2)
-// For (1,2) => (2,1)
-// For (1,3) => (3,3)
-// For (2,0) => (0,0)
-// For (2,1) => (1,2)
-// For (2,2) => (1,1)
-// For (2,3) => (3,2)
-// For (3,0) => (1,0)
-// For (3,1) => (2,0)
-// For (3,2) => (3,0)
-// For (3,3) => (3,1)
+// (0,0) => (0,1)
+// (0,1) => (0,2)
+// (0,2) => (0,3)
+// (0,3) => (1,3)
+// (1,0) => (0,0)
+// (1,1) => (1,2)
+// (1,2) => (2,2)
+// (1,3) => (2,3)
+// (2,0) => (1,0)
+// (2,1) => (1,1)
+// (2,2) => (2,1)
+// (2,3) => (3,3)
+// (3,0) => (2,0)
+// (3,1) => (3,0)
+// (3,2) => (3,1)
+// (3,3) => (3,2)
 
 // CURRENT
-// For (0,0) => (0,2)
-// For (0,1) => (0,3)
-// For (0,2) => (1,3)
-// For (0,3) => (2,3)
-// For (1,0) => (0,1)
-// For (1,1) => (2,2)
-// For (1,2) => (2,1)
-// For (1,3) => (3,3)
-// For (2,0) => (0,0)
-// For (2,1) => (1,2)
-// For (2,2) => (1,1)
-// For (2,3) => (3,2)
-// For (3,0) => (1,0)
-// For (3,1) => (2,0)
-// For (3,2) => (3,0)
-// For (3,3) => (3,1)
+// (0,0) => (0,1)
+// (0,1) => (0,2)
+// (0,2) => (0,3)
+// (0,3) => (1,3)
+// (1,0) => (0,0)
+// (1,1) => (1,2)
+// (1,2) => (2,2)
+// (1,3) => (2,3)
+// (2,0) => (1,0)
+// (2,1) => (1,1)
+// (2,2) => (2,1)
+// (2,3) => (3,3)
+// (3,0) => (2,0)
+// (3,1) => (3,0)
+// (3,2) => (3,1)
+// (3,3) => (3,2)
