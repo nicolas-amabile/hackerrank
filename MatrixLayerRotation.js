@@ -90,44 +90,42 @@ function getNewIndex ({ x, y, r, MIN, MAX }) {
     nextDirection = D.UP
   }
   while(offset > 0) {
-    // TODO: Esto de aca esta mal. Ver Spreedsheet
-    let canGoLeft = newX - 1 >= min
-    let canGoDown = newY + 1 <= max
-    let canGoRight = newX + 1 <= max
-    let canGoUp = newY - 1 >= min
+    let canGoLeft = newY - 1 >= min
+    let canGoDown = newX + 1 <= max
+    let canGoRight = newY + 1 <= max
+    let canGoUp = newX - 1 >= min
     if (canGoLeft && (nextDirection === D.LEFT || !canGoUp)) {
       while(canGoLeft && offset>0) {
-        newX--
-        canGoLeft = newX - 1 >= min
+        newY--
+        canGoLeft = newY - 1 >= min
         offset--
       }
       if (offset>0) nextDirection = D.DOWN
     } else if (canGoDown && (nextDirection === D.DOWN || !canGoLeft)) {
       while(canGoDown && offset>0) {
-        newY++
-        canGoDown = newY + 1 <= max
+        newX++
+        canGoDown = newX + 1 <= max
         offset--
       }
       if (offset>0) nextDirection = D.RIGHT
 
     } else if (canGoRight && (nextDirection === D.RIGHT || !canGoDown)) {
       while(canGoRight && offset>0) {
-        newX++
-        canGoRight = newX + 1 <= max
+        newY++
+        canGoRight = newY + 1 <= max
         offset--
       }
       if (offset>0) nextDirection = D.UP
 
     } else if (canGoUp && (nextDirection === D.UP || !canGoRight)) { 
       while(canGoUp && offset>0) {
-        newY--
-        canGoUp = newY - 1 >= min
+        newX--
+        canGoUp = newX - 1 >= min
         offset--
       }
       if (offset>0) nextDirection = D.LEFT
     }
   }
-  // console.log(`(${x},${y}) => (${newX},${newY})`)
   return [newX, newY]
 }
 
