@@ -1,49 +1,38 @@
 'use strict';
 
-// process.stdin.resume();
-// process.stdin.setEncoding('utf-8');
-
-// let inputString = '';
-// let currentLine = 0;
-
-// process.stdin.on('data', function(inputStdin) {
-//     inputString += inputStdin;
-// });
-
-// process.stdin.on('end', function() {
-//     inputString = inputString.split('\n');
-
-//     main();
-// });
-
-// function readLine() {
-//     return inputString[currentLine++];
-// }
-
-function buildLimitsMatrix (width, height) {
-  const MAX = new Array(width)
-  const MIN = new Array(width)
-  for (let x=0; x<width; x++) {
-    for (let y=0; y<height; y++) {
-      if (!MIN[x]) MIN[x] = new Array(height)
+function buildLimitsMatrix (height, width) {
+  const MAX = new Array(height)
+  const MIN = new Array(height)
+  let maxX, maxY
+  for (let x=0; x<height; x++) {
+    for (let y=0; y<width; y++) {
+      if (!MIN[x]) MIN[x] = new Array(width)
+      if (!MAX[x]) MAX[x] = new Array(width)
       const layer = Math.min(x,y)
       if (MIN[x][y] === undefined) {
-        MIN[x][y] = layer
-        if (x+y<width) {
-          const mirrorX = height - 1 - y
-          const mirrorY = width - 1 - x
-          if (!MIN[mirrorX]) MIN[mirrorX] = new Array(height)
-          if (MIN[mirrorX][mirrorY] === undefined) MIN[mirrorX][mirrorY] = layer
+        MIN[x][y] = [layer, layer]
+        maxX = height - layer - 1
+        maxY = width - layer - 1
+        MAX[x][y] = [maxX, maxY]
+        
+        for (let i=layer; i<=maxY; i++) {
+          if (!MIN[maxX]) MIN[maxX] = new Array(width)
+          if (!MAX[maxX]) MAX[maxX] = new Array(width)
+
+          MIN[maxX][i] = [layer, layer]
+          MAX[maxX][i] = [maxX, maxY]
+        }
+
+        for (let i=layer; i<=maxX; i++) {
+          if (!MIN[i]) MIN[i] = new Array(width)
+          if (!MAX[i]) MAX[i] = new Array(width)
+          MIN[i][maxY] = [layer, layer]
+          MAX[i][maxY] = [maxX, maxY]
         }
       }
     }
   }
-  for (let x=0; x<width; x++) {
-    for (let y=0; y<height; y++) {
-      if (!MAX[x]) MAX[x] = new Array(height)
-      MAX[x][y] = width - MIN[x][y] - 1
-    }
-  }
+
   return {
     MIN,
     MAX
@@ -56,55 +45,40 @@ const D = {
   UP: 'up'
 }
 
-const ERRORS = [
-
-]
-
-function isError (x, y) {
-  let result = false
-  ERRORS.forEach(([eX, eY]) => {
-    if (eX === x && eY === y) {
-      result = true
-    }
-  })
-  return result
-}
-
 function getNewIndex ({ x, y, r, MIN, MAX }) {
-  const min = MIN[x][y]
-  const max = MAX[x][y]
+  const minX = MIN[x][y][0]
+  const minY = MIN[x][y][1]
+  const maxX = MAX[x][y][0]
+  const maxY = MAX[x][y][1]
+
   let newX = x
   let newY = y
   let offset = r
 
-  if (isError(x, y)) {
-    debugger
-  }
-
   let nextDirection = D.LEFT
-  if (newX === min) {
+  if (newX === minX) {
     nextDirection = D.DOWN
-  } else if (newX === max) {
+  } else if (newX === maxX) {
     nextDirection = D.RIGHT
-  } else if (newY === max) {
+  } else if (newY === maxY) {
     nextDirection = D.UP
   }
   while(offset > 0) {
-    let canGoLeft = newY - 1 >= min
-    let canGoDown = newX + 1 <= max
-    let canGoRight = newY + 1 <= max
-    let canGoUp = newX - 1 >= min
+    let canGoLeft = newY - 1 >= minY
+    let canGoDown = newX + 1 <= maxX
+    let canGoRight = newY + 1 <= maxY
+    let canGoUp = newX - 1 >= minX
     if (canGoLeft && (nextDirection === D.LEFT || !canGoUp)) {
       while(canGoLeft && offset>0) {
         newY--
-        canGoLeft = newY - 1 >= min
+        canGoLeft = newY - 1 >= minY
         offset--
       }
       if (offset>0) nextDirection = D.DOWN
     } else if (canGoDown && (nextDirection === D.DOWN || !canGoLeft)) {
       while(canGoDown && offset>0) {
         newX++
-        canGoDown = newX + 1 <= max
+        canGoDown = newX + 1 <= maxX
         offset--
       }
       if (offset>0) nextDirection = D.RIGHT
@@ -112,7 +86,7 @@ function getNewIndex ({ x, y, r, MIN, MAX }) {
     } else if (canGoRight && (nextDirection === D.RIGHT || !canGoDown)) {
       while(canGoRight && offset>0) {
         newY++
-        canGoRight = newY + 1 <= max
+        canGoRight = newY + 1 <= maxY
         offset--
       }
       if (offset>0) nextDirection = D.UP
@@ -120,7 +94,7 @@ function getNewIndex ({ x, y, r, MIN, MAX }) {
     } else if (canGoUp && (nextDirection === D.UP || !canGoRight)) { 
       while(canGoUp && offset>0) {
         newX--
-        canGoUp = newX - 1 >= min
+        canGoUp = newX - 1 >= minX
         offset--
       }
       if (offset>0) nextDirection = D.LEFT
@@ -138,103 +112,40 @@ function printMatrix (matrix) {
 // Complete the matrixRotation function below.
 function matrixRotation(matrix, r) {
   const result = []
-  const width = matrix.length
-  const height = matrix[0].length
-  const { MIN, MAX } = buildLimitsMatrix(width, height)
-  for (let x = 0; x<width; x++) {
-    for(let y = 0; y<height; y++) {
+  const height = matrix.length
+  const width = matrix[0].length
+  const { MIN, MAX } = buildLimitsMatrix(height, width)
+  for (let x = 0; x<height; x++) {
+    for(let y = 0; y<width; y++) {
       const [newX, newY] = getNewIndex({ x, y, r, MIN, MAX })
-      if (!result[newX]) result[newX] = new Array(height)
+      if (!result[newX]) result[newX] = new Array(width)
       result[newX][newY] = matrix[x][y]
     }
   }
   printMatrix(result)
 }
 
-// function main() {
-//     const mnr = readLine().replace(/\s+$/g, '').split(' ');
-
-//     const m = parseInt(mnr[0], 10);
-
-//     const n = parseInt(mnr[1], 10);
-
-//     const r = parseInt(mnr[2], 10);
-
-//     let matrix = Array(m);
-
-//     for (let i = 0; i < m; i++) {
-//         matrix[i] = readLine().replace(/\s+$/g, '').split(' ').map(matrixTemp => parseInt(matrixTemp, 10));
-//     }
-
-//     matrixRotation(matrix, r);
-// }
-
-const R = 1
+const R = 7
 const example = [
   [1, 2, 3, 4],
-  [5, 6, 7, 8],
-  [9, 10, 11, 12],
-  [13, 14, 15, 16]
+  [7, 8, 9, 10],
+  [13, 14, 15, 16],
+  [19, 20, 21, 22],
+  [25, 26, 27, 28]
 ]
 const expected = [
-  [2, 3, 4, 8],
-  [1, 7, 11, 12],
-  [5, 6, 10, 16],
-  [9, 13, 14, 15]
-]
-const got = [
-  [5, 1, 2, 3],
-  [9, 10, 6, 4],
-  [13, 11, 7, 8],
-  [14, 15, 16, 12],
+  [28, 27, 26, 25],
+  [22, 9, 15, 19],
+  [16, 8, 21, 13],
+  [10, 14, 20, 7],
+  [4, 3, 2, 1]
 ]
 
-console.log('Input')
-printMatrix(example)
+// console.log('Input')
+// printMatrix(example)
 
-console.log('\nResult')
+// console.log('\nResult')
 matrixRotation(example, R)
 
-console.log('\nExpected')
-printMatrix(expected)
-
-// (0,0) (1,0) (2,0) (3,0)
-// (0,1) (1,1) (2,1) (3,1)
-// (0,2) (1,2) (2,2) (3,2)
-// (0,3) (1,3) (2,3) (3,3)  
-
-// EXPECTED
-// (0,0) => (0,1)
-// (0,1) => (0,2)
-// (0,2) => (0,3)
-// (0,3) => (1,3)
-// (1,0) => (0,0)
-// (1,1) => (1,2)
-// (1,2) => (2,2)
-// (1,3) => (2,3)
-// (2,0) => (1,0)
-// (2,1) => (1,1)
-// (2,2) => (2,1)
-// (2,3) => (3,3)
-// (3,0) => (2,0)
-// (3,1) => (3,0)
-// (3,2) => (3,1)
-// (3,3) => (3,2)
-
-// CURRENT
-// (0,0) => (0,1)
-// (0,1) => (0,2)
-// (0,2) => (0,3)
-// (0,3) => (1,3)
-// (1,0) => (0,0)
-// (1,1) => (1,2)
-// (1,2) => (2,2)
-// (1,3) => (2,3)
-// (2,0) => (1,0)
-// (2,1) => (1,1)
-// (2,2) => (2,1)
-// (2,3) => (3,3)
-// (3,0) => (2,0)
-// (3,1) => (3,0)
-// (3,2) => (3,1)
-// (3,3) => (3,2)
+// console.log('\nExpected')
+// printMatrix(expected)
