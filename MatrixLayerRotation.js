@@ -53,7 +53,8 @@ function getNewIndex ({ x, y, r, MIN, MAX }) {
 
   let newX = x
   let newY = y
-  let offset = r
+  const completeRound = (maxX - minX + maxY-minY)*2
+  let offset = r%completeRound
 
   let nextDirection = D.LEFT
   if (newX === minX) {
